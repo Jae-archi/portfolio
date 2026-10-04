@@ -1,7 +1,7 @@
-/* Portfolio viewer: shows portfolio.pdf one spread at a time (like a book) or as a scrolling column, and counts
+/* Portfolio viewer: shows the selected language one spread at a time (like a book) or as a scrolling column, and counts
    visits per office link with GoatCounter.
    Link format: https://<user>.github.io/<repo>/?o=<code>   (the code is mapped to an office in a private file, not here)
-   Optional: add #5 to open a given page, or ?view=scroll for the scrolling view.
+   Optional: add ?lang=fr for French, #5 for a page, or ?view=scroll for the scrolling view.
    Events sent to GoatCounter (all anonymous):
      /o/<code>            one page view when the page opens
      /o/<code>/p<N>       page N stayed on screen for at least 1.5 s
@@ -10,16 +10,59 @@
 (() => {
   'use strict';
   const GC_CODE = 'jaearchi';                       // -> https://jaearchi.goatcounter.com
-  const PDF_URL = 'assets/portfolio.pdf';
   const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   const DWELL_MS = 1500;
   const MAX_PX = 5600;                              // longest canvas side
 
   const q = new URLSearchParams(location.search);
+  const lang = q.get('lang') === 'fr' ? 'fr' : 'en';
+  const PDF_URL = (lang === 'fr' ? 'assets/portfolio_fr.pdf' : 'assets/portfolio.pdf') + '?v=20261004-3';
+  const copy = lang === 'fr' ? {
+    subtitle: 'Portfolio 2026 · LIMINA, Du seuil à la ville', scroll: 'Vue défilante', book: 'Vue livre',
+    full: 'Plein écran', download: 'Télécharger PDF', zoom: 'Zoom', fit: 'Ajuster',
+    loading: 'Chargement du portfolio…', viewerError: 'La visionneuse ne peut pas démarrer.',
+    pdfError: 'Le portfolio ne peut pas être affiché.', direct: 'Ouvrir le PDF directement',
+    footer: 'Utilisez ← → ou balayez pour tourner les pages. Les visites sont comptées anonymement (pages vues uniquement, sans cookies ni données personnelles).'
+  } : {
+    subtitle: 'Portfolio 2026 · LIMINA, From Threshold to City', scroll: 'Scroll view', book: 'Book view',
+    full: 'Full screen', download: 'Download PDF', zoom: 'Zoom', fit: 'Fit',
+    loading: 'Loading portfolio…', viewerError: 'The viewer could not load.',
+    pdfError: 'The portfolio could not be displayed.', direct: 'Open the PDF directly',
+    footer: 'Use ← → or swipe to turn pages. This page counts visits anonymously (page views only, no cookies, no personal data).'
+  };
   let office = (q.get('o') || 'direct').toLowerCase();
   if (!/^[a-z0-9_-]{1,24}$/.test(office)) office = 'direct';
-  const base = '/o/' + office;
+  const base = '/o/' + office + (lang === 'fr' ? '/fr' : '');
   const $ = id => document.getElementById(id);
+
+  function languageUrl(target) {
+    const url = new URL(location.href);
+    if (target === 'fr') url.searchParams.set('lang', 'fr');
+    else url.searchParams.delete('lang');
+    return url.pathname + url.search + url.hash;
+  }
+  function refreshLanguageLinks() {
+    $('langEn').href = languageUrl('en');
+    $('langFr').href = languageUrl('fr');
+  }
+  document.documentElement.lang = lang;
+  document.querySelector('.language').setAttribute('aria-label', lang === 'fr' ? 'Langue du portfolio' : 'Portfolio language');
+  $('langEn').setAttribute('aria-current', lang === 'en' ? 'page' : 'false');
+  $('langFr').setAttribute('aria-current', lang === 'fr' ? 'page' : 'false');
+  refreshLanguageLinks();
+  $('subtitle').textContent = copy.subtitle;
+  $('viewToggle').textContent = copy.scroll;
+  $('fs').textContent = copy.full;
+  $('fs').title = copy.full + ' (F)';
+  $('dl').textContent = copy.download;
+  $('dl').href = PDF_URL;
+  $('dl').download = 'LEE_Jaegyu_Portfolio_2027_' + lang.toUpperCase() + '.pdf';
+  $('direct').href = PDF_URL;
+  $('direct').textContent = copy.direct;
+  $('footerCopy').textContent = copy.footer;
+  $('status').textContent = copy.loading;
+  $('viewport').title = lang === 'fr' ? 'Cliquer pour agrandir' : 'Click to zoom';
+  $('viewToggle').title = lang === 'fr' ? 'Changer de mode de lecture' : 'Switch between book view and scroll view';
 
   /* ---------- analytics (GoatCounter, skipped if not configured or Do Not Track is on) ---------- */
   const dnt = navigator.doNotTrack === '1' || window.doNotTrack === '1';
@@ -41,8 +84,8 @@
     s.onload = () => { gcReady = true; queue.splice(0).forEach(h => window.goatcounter.count(h)); };
     document.head.appendChild(s);
   }
-  track(base, 'Portfolio view (' + office + ')', false);
-  $('dl').addEventListener('click', () => track(base + '/download', 'Download PDF', true));
+  track(base, 'Portfolio view (' + office + ', ' + lang + ')', false);
+  $('dl').addEventListener('click', () => track(base + '/download', copy.download, true));
   // count a page only while the tab is actually visible (background tabs do not count as reading)
   const countPage = n => { if (document.visibilityState === 'visible' && !seen.has(n)) { seen.add(n); track(base + '/p' + n, 'Page ' + n, true); } };
 
@@ -51,8 +94,8 @@
   const viewport = $('viewport'), canvas = $('canvas'), statusEl = $('status');
   const slider = $('slider'), countEl = $('count');
   const prevBtn = $('prev'), nextBtn = $('next');
-  const fail = msg => { statusEl.innerHTML = msg + ' <a href="' + PDF_URL + '" style="pointer-events:auto">Open the PDF directly</a>.'; statusEl.style.pointerEvents = 'auto'; };
-  if (!window.pdfjsLib) { fail('The viewer could not load.'); return; }
+  const fail = msg => { statusEl.innerHTML = msg + ' <a href="' + PDF_URL + '" style="pointer-events:auto">' + copy.direct + '</a>.'; statusEl.style.pointerEvents = 'auto'; };
+  if (!window.pdfjsLib) { fail(copy.viewerError); return; }
   pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
 
   let pdf = null, total = 0, cur = 1, zoom = 1, mode = 'book';
@@ -98,7 +141,7 @@
     slider.value = cur;
     prevBtn.disabled = cur <= 1; nextBtn.disabled = cur >= total;
     viewport.classList.toggle('zoomed', zoom > 1);
-    $('zoom').textContent = zoom > 1 ? 'Fit' : 'Zoom';
+    $('zoom').textContent = zoom > 1 ? copy.fit : copy.zoom;
   }
 
   function go(n, opts) {
@@ -108,6 +151,7 @@
     updateUi();
     renderBook();
     if (history.replaceState) history.replaceState(null, '', location.pathname + location.search + '#' + cur);
+    refreshLanguageLinks();
     clearTimeout(dwellTimer);
     const shown = cur;
     dwellTimer = setTimeout(() => countPage(shown), DWELL_MS);
@@ -199,6 +243,11 @@
     }), { rootMargin: '700px 0px' });
     viewObserver = new IntersectionObserver(entries => entries.forEach(en => {
       const n = Number(en.target.dataset.n);
+      if (en.isIntersecting && mode === 'scroll') {
+        cur = n;
+        if (history.replaceState) history.replaceState(null, '', location.pathname + location.search + '#' + cur);
+        refreshLanguageLinks();
+      }
       if (en.isIntersecting && !seen.has(n)) timers.set(n, setTimeout(() => countPage(n), DWELL_MS));
       else if (!en.isIntersecting && timers.has(n)) { clearTimeout(timers.get(n)); timers.delete(n); }
     }), { threshold: 0.5 });
@@ -221,16 +270,26 @@
     const book = m === 'book';
     document.body.classList.toggle('book-mode', book);
     bookEl.hidden = !book; ctrlEl.hidden = !book; pagesEl.hidden = book;
-    $('viewToggle').textContent = book ? 'Scroll view' : 'Book view';
+    $('viewToggle').textContent = book ? copy.scroll : copy.book;
     $('fs').style.visibility = book ? '' : 'hidden';
+    const url = new URL(location.href);
+    if (book) url.searchParams.delete('view'); else url.searchParams.set('view', 'scroll');
+    if (history.replaceState) history.replaceState(null, '', url.pathname + url.search + url.hash);
+    refreshLanguageLinks();
     if (book) { clearTimeout(dwellTimer); renderBook(); go(cur, { force: true }); }
-    else { clearTimeout(dwellTimer); buildScroll(); }
+    else {
+      clearTimeout(dwellTimer);
+      const targetPage = cur;
+      buildScroll().then(() => {
+        if (targetPage > 1 && sections[targetPage - 1]) sections[targetPage - 1].el.scrollIntoView();
+      });
+    }
   }
   $('viewToggle').addEventListener('click', () => setMode(mode === 'book' ? 'scroll' : 'book'));
 
   /* ---------- load ---------- */
   const task = pdfjsLib.getDocument(PDF_URL);
-  task.onProgress = p => { if (p.total) statusEl.textContent = 'Loading portfolio… ' + Math.round(p.loaded / p.total * 100) + '%'; };
+  task.onProgress = p => { if (p.total) statusEl.textContent = copy.loading + ' ' + Math.round(p.loaded / p.total * 100) + '%'; };
   task.promise.then(doc => {
     pdf = doc; total = doc.numPages;
     slider.max = total;
@@ -241,5 +300,5 @@
     clearTimeout(dwellTimer); dwellTimer = setTimeout(() => countPage(cur), DWELL_MS);
     if (cur < total) getPage(cur + 1);
     window.addEventListener('hashchange', () => { const n = parseInt(location.hash.replace('#', ''), 10); if (Number.isFinite(n) && mode === 'book') go(n); });
-  }).catch(() => fail('The portfolio could not be displayed.'));
+  }).catch(() => fail(copy.pdfError));
 })();

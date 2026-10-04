@@ -18,6 +18,12 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .tools button:hover { color:var(--ink); border-color:var(--mute); }
 .btn { color:var(--accent); border-color:var(--accent); }
 .btn:hover { background:var(--accent); color:#fff; }
+.language { display:inline-flex; align-items:center; border:1px solid var(--line); border-radius:6px; overflow:hidden; white-space:nowrap; }
+.language a { padding:5px 9px; color:var(--mute); text-decoration:none; font-size:13px; line-height:1.5; }
+.language a + a { border-left:1px solid var(--line); }
+.language a:hover { color:var(--ink); }
+.language a[aria-current="page"] { color:var(--ink); background:var(--line); font-weight:600; }
+.language a:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
 
 /* book view */
 .book { flex:1; min-height:0; position:relative; display:flex; align-items:stretch; }
@@ -47,7 +53,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .foot a { color:var(--mute); }
 
 @media (max-width:640px) {
+  .bar { height:auto; min-height:var(--hdr); flex-wrap:wrap; padding:6px 10px; gap:5px; }
   .who span { display:none; }
+  .tools { width:100%; justify-content:flex-end; flex-wrap:wrap; gap:4px; }
+  .tools button, .btn, .language a { padding:4px 7px; font-size:12px; }
   .tools button#fs { display:none; }
   .nav { width:30px; font-size:28px; }
   .viewport { padding:6px 2px; }
