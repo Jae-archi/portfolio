@@ -16,7 +16,7 @@
 
   const q = new URLSearchParams(location.search);
   const lang = q.get('lang') === 'fr' ? 'fr' : 'en';
-  const PDF_URL = (lang === 'fr' ? 'assets/portfolio_fr.pdf' : 'assets/portfolio.pdf') + '?v=20261004-3';
+  const PDF_URL = (lang === 'fr' ? 'assets/portfolio_fr.pdf' : 'assets/portfolio.pdf') + '?v=20261004-4';
   const copy = lang === 'fr' ? {
     subtitle: 'Portfolio 2026 · LIMINA, Du seuil à la ville', scroll: 'Défilement', book: 'Livre',
     full: 'Plein écran', download: 'Télécharger PDF', zoom: 'Zoom', fit: 'Ajuster',
