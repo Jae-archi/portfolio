@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Jaegyu LEE, Portfolio 2026</title>
 <meta name="description" content="Portfolio of Jaegyu LEE, architecture student, Paris.">
-<link rel="stylesheet" href="assets/style.css?v=6">
+<link rel="stylesheet" href="assets/style.css?v=7">
 </head>
 <body class="book-mode">
 <header class="bar">
@@ -24,6 +24,11 @@
     <a id="dl" class="btn" href="assets/portfolio.pdf" download>Download PDF</a>
   </nav>
 </header>
+
+<!-- focus mode (full screen on phones too) -->
+<button id="exitFocus" class="exit-focus" type="button" hidden aria-label="Exit full screen">✕</button>
+<span id="countFloat" class="count-float" hidden></span>
+<div id="rotateHint" class="rotate-hint" hidden></div>
 
 <!-- book view: one spread at a time -->
 <section id="book" class="book">
@@ -48,6 +53,6 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="assets/viewer.js?v=7"></script>
+<script src="assets/viewer.js?v=8"></script>
 </body>
 </html>

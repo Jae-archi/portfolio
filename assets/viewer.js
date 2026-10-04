@@ -19,13 +19,13 @@
   const PDF_URL = (lang === 'fr' ? 'assets/portfolio_fr.pdf' : 'assets/portfolio.pdf') + '?v=20261005-1';
   const copy = lang === 'fr' ? {
     subtitle: 'Portfolio 2026 · LIMINA, Du seuil à la ville', scroll: 'Défilement', book: 'Livre',
-    full: 'Plein écran', download: 'Télécharger PDF', zoom: 'Zoom', fit: 'Ajuster',
+    full: 'Plein écran', exit: 'Quitter le plein écran', rotate: 'Tournez votre téléphone pour agrandir', download: 'Télécharger PDF', zoom: 'Zoom', fit: 'Ajuster',
     loading: 'Chargement du portfolio…', viewerError: 'La visionneuse ne peut pas démarrer.',
     pdfError: 'Le portfolio ne peut pas être affiché.', direct: 'Ouvrir le PDF directement',
     footer: 'Utilisez ← → ou balayez pour tourner les pages. Les visites sont comptées anonymement (pages vues uniquement, sans cookies ni données personnelles).'
   } : {
     subtitle: 'Portfolio 2026 · LIMINA, From Threshold to City', scroll: 'Scroll', book: 'Book',
-    full: 'Full screen', download: 'Download PDF', zoom: 'Zoom', fit: 'Fit',
+    full: 'Full screen', exit: 'Exit full screen', rotate: 'Turn your phone sideways for a larger view', download: 'Download PDF', zoom: 'Zoom', fit: 'Fit',
     loading: 'Loading portfolio…', viewerError: 'The viewer could not load.',
     pdfError: 'The portfolio could not be displayed.', direct: 'Open the PDF directly',
     footer: 'Use ← → or swipe to turn pages. This page counts visits anonymously (page views only, no cookies, no personal data).'
@@ -140,7 +140,7 @@
   }
 
   function updateUi() {
-    countEl.textContent = cur + ' / ' + total;
+    countEl.textContent = cur + ' / ' + total; $('countFloat').textContent = cur + ' / ' + total;
     slider.value = cur;
     prevBtn.disabled = cur <= 1; nextBtn.disabled = cur >= total;
     viewport.classList.toggle('zoomed', zoom > 1);
@@ -188,6 +188,7 @@
     else if (k === 'z' || k === 'Z') toggleZoom();
     else if (k === 'f' || k === 'F') toggleFs();
     else if (k === 'Escape' && zoom > 1) toggleZoom();
+    else if (k === 'Escape' && focus) toggleFs();
   });
   // swipe to turn pages (only when not zoomed)
   let tx = null, ty = null;
@@ -206,16 +207,45 @@
   let rz;
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (mode === 'book' && pdf) renderBook(); else if (mode === 'scroll') resetScroll(); }, 200); });
 
-  /* ---------- full screen ---------- */
-  function toggleFs() {
-    const el = document.documentElement;
-    if (!document.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); }
-    else { (document.exitFullscreen || document.webkitExitFullscreen || (() => {})).call(document); }
+  /* ---------- full screen / focus mode ----------
+     Focus mode hides the header, controls and footer so the spread fills the screen. It works on every device, including
+     iPhones, which have no Fullscreen API. Where the API exists it is used as well, and on touch devices the screen is
+     asked to stay in landscape (Android Chrome allows this inside full screen; iOS does not). */
+  const rootEl = document.documentElement;
+  const canFs = !!(rootEl.requestFullscreen || rootEl.webkitRequestFullscreen);
+  const isTouch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  let focus = false, hintTimer = null;
+  const fsActive = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function setFocus(on) {
+    focus = on;
+    document.body.classList.toggle('focus-mode', on);
+    $('exitFocus').hidden = !on; $('countFloat').hidden = !on;
+    $('exitFocus').setAttribute('aria-label', copy.exit);
+    if (on && isTouch && window.innerHeight > window.innerWidth) {      // portrait phone: suggest turning it
+      const hint = $('rotateHint'); hint.textContent = copy.rotate; hint.hidden = false;
+      clearTimeout(hintTimer); hintTimer = setTimeout(() => { hint.hidden = true; }, 4500);
+    } else { $('rotateHint').hidden = true; }
+    setTimeout(() => { if (mode === 'book' && pdf) renderBook(); }, 150);
+  }
+  async function toggleFs() {
+    if (focus || fsActive()) {
+      if (fsActive()) { try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} }
+      if (screen.orientation && screen.orientation.unlock) { try { screen.orientation.unlock(); } catch (e) {} }
+      setFocus(false);
+      return;
+    }
+    setFocus(true);
+    if (canFs) {
+      try { await (rootEl.requestFullscreen || rootEl.webkitRequestFullscreen).call(rootEl); } catch (e) {}
+      if (isTouch && screen.orientation && screen.orientation.lock) { try { await screen.orientation.lock('landscape'); $('rotateHint').hidden = true; } catch (e) {} }
+    }
   }
   $('fs').addEventListener('click', toggleFs);
-  if (!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)) $('fs').style.display = 'none';
-  document.addEventListener('fullscreenchange', () => setTimeout(() => { if (mode === 'book' && pdf) renderBook(); }, 150));
-
+  $('exitFocus').addEventListener('click', toggleFs);
+  const onFsChange = () => { if (!fsActive() && focus) setFocus(false); else setTimeout(() => { if (mode === 'book' && pdf) renderBook(); }, 150); };
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+  window.addEventListener('orientationchange', () => { $('rotateHint').hidden = true; });
   /* ---------- scroll view ---------- */
   const sections = [];
   let renderObserver = null, viewObserver = null, scrollBuilt = false;
