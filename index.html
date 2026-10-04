@@ -6,24 +6,41 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Jaegyu LEE, Portfolio 2026</title>
 <meta name="description" content="Portfolio of Jaegyu LEE, architecture student, Paris.">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=4">
 </head>
-<body>
+<body class="book-mode">
 <header class="bar">
   <div class="who"><strong>Jaegyu LEE</strong><span>Portfolio 2026 · LIMINA, From Threshold to City</span></div>
-  <a id="dl" class="btn" href="assets/portfolio.pdf" download>Download PDF</a>
+  <nav class="tools">
+    <button id="viewToggle" type="button" title="Switch between book view and scroll view">Scroll view</button>
+    <button id="fs" type="button" title="Full screen (F)">Full screen</button>
+    <a id="dl" class="btn" href="assets/portfolio.pdf" download>Download PDF</a>
+  </nav>
 </header>
 
-<main id="pages" aria-live="polite">
-  <p id="status" class="status">Loading portfolio…</p>
-</main>
+<!-- book view: one spread at a time -->
+<section id="book" class="book">
+  <button id="prev" class="nav prev" type="button" aria-label="Previous page">‹</button>
+  <div id="viewport" class="viewport" title="Click to zoom">
+    <canvas id="canvas"></canvas>
+    <p id="status" class="status">Loading portfolio…</p>
+  </div>
+  <button id="next" class="nav next" type="button" aria-label="Next page">›</button>
+</section>
+<div id="ctrl" class="ctrl">
+  <button id="zoom" type="button" title="Zoom (Z or click the page)">Zoom</button>
+  <input id="slider" type="range" min="1" max="1" value="1" aria-label="Page">
+  <span id="count">1 / 1</span>
+</div>
+
+<!-- scroll view: all pages in a column -->
+<main id="pages" class="pages" hidden></main>
 
 <footer class="foot">
-  <p>This page counts visits anonymously (page views only, no cookies, no personal data).</p>
-  <p><a href="assets/portfolio.pdf">Open the PDF directly</a></p>
+  <p>Use ← → or swipe to turn pages. This page counts visits anonymously (page views only, no cookies, no personal data). <a href="assets/portfolio.pdf">Open the PDF directly</a></p>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="assets/viewer.js"></script>
+<script src="assets/viewer.js?v=4"></script>
 </body>
 </html>

@@ -1,20 +1,55 @@
-:root { --bg:#f3f3f1; --ink:#1a1a1a; --mute:#6b6b6b; --line:#dcdcd8; --accent:#3a6fb5; }
+:root { --bg:#f3f3f1; --ink:#1a1a1a; --mute:#6b6b6b; --line:#dcdcd8; --accent:#3a6fb5; --hdr:54px; --ctrl:42px; --foot:34px; }
 @media (prefers-color-scheme: dark) { :root { --bg:#161616; --ink:#ececec; --mute:#9a9a9a; --line:#2c2c2c; --accent:#7aa7e0; } }
 * { box-sizing: border-box; }
 html, body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
-.bar { position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:10px 16px; background:var(--bg); border-bottom:1px solid var(--line); }
-.who { display:flex; flex-direction:column; min-width:0; }
+body { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
+/* book view: the page never scrolls, only the zoomed spread inside the viewport does */
+body.book-mode { height:100vh; height:100dvh; overflow:hidden; }
+button { font:inherit; color:inherit; background:none; border:0; cursor:pointer; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+.bar { flex:none; height:var(--hdr); display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:0 16px; border-bottom:1px solid var(--line); }
+.who { display:flex; flex-direction:column; min-width:0; line-height:1.25; }
 .who strong { letter-spacing:.08em; }
 .who span { color:var(--mute); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.btn { flex:none; color:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:6px 12px; text-decoration:none; font-size:13px; }
+.tools { display:flex; align-items:center; gap:6px; flex:none; }
+.tools button, .btn { border:1px solid var(--line); border-radius:6px; padding:5px 10px; font-size:13px; color:var(--mute); text-decoration:none; }
+.tools button:hover { color:var(--ink); border-color:var(--mute); }
+.btn { color:var(--accent); border-color:var(--accent); }
 .btn:hover { background:var(--accent); color:#fff; }
-#pages { max-width:1180px; margin:0 auto; padding:16px 16px 8px; }
+
+/* book view */
+.book { flex:1; min-height:0; position:relative; display:flex; align-items:stretch; }
+.viewport { flex:1; min-width:0; overflow:auto; display:flex; padding:12px 8px; }
+.viewport canvas { margin:auto; flex:none; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.18); cursor:zoom-in; }
+.viewport.zoomed canvas { cursor:zoom-out; }
+.status { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; margin:0; color:var(--mute); pointer-events:none; }
+.nav { flex:none; width:46px; font-size:34px; line-height:1; color:var(--mute); opacity:.8; }
+.nav:hover { color:var(--ink); opacity:1; }
+.nav[disabled] { opacity:.15; cursor:default; }
+
+.ctrl { flex:none; height:var(--ctrl); display:flex; align-items:center; gap:12px; padding:0 16px; border-top:1px solid var(--line); }
+.ctrl button { border:1px solid var(--line); border-radius:6px; padding:3px 10px; font-size:13px; color:var(--mute); }
+.ctrl button:hover { color:var(--ink); }
+.ctrl input[type=range] { flex:1; accent-color:var(--accent); }
+.ctrl span { min-width:56px; text-align:right; color:var(--mute); font-variant-numeric:tabular-nums; font-size:13px; }
+
+/* scroll view */
+.pages { flex:1; width:100%; max-width:1180px; margin:0 auto; padding:16px 16px 8px; }
+.pages[hidden], .book[hidden], .ctrl[hidden] { display:none; }
 .page { position:relative; width:100%; margin:0 auto 14px; background:#fff; box-shadow:0 1px 6px rgba(0,0,0,.14); }
 .page canvas { display:block; width:100%; height:100%; }
 .page.cover { max-width:420px; }
-.status { text-align:center; color:var(--mute); padding:40px 0; }
-.foot { text-align:center; color:var(--mute); font-size:12px; padding:8px 16px 28px; }
-.foot p { margin:4px 0; }
+
+.foot { flex:none; min-height:var(--foot); text-align:center; color:var(--mute); font-size:12px; padding:6px 16px; border-top:1px solid var(--line); }
+.foot p { margin:0; }
 .foot a { color:var(--mute); }
-@media (max-width:600px) { #pages { padding:8px; } .page { margin-bottom:8px; } }
+
+@media (max-width:640px) {
+  .who span { display:none; }
+  .tools button#fs { display:none; }
+  .nav { width:30px; font-size:28px; }
+  .viewport { padding:6px 2px; }
+  .ctrl { padding:0 10px; gap:8px; }
+}
