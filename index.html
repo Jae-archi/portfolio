@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Jaegyu LEE, Portfolio 2026</title>
 <meta name="description" content="Portfolio of Jaegyu LEE, architecture student, Paris.">
-<link rel="stylesheet" href="assets/style.css?v=5">
+<link rel="stylesheet" href="assets/style.css?v=6">
 </head>
 <body class="book-mode">
 <header class="bar">
@@ -16,7 +16,10 @@
       <a id="langEn" href="?lang=en" lang="en" aria-label="English portfolio">EN</a>
       <a id="langFr" href="?lang=fr" lang="fr" aria-label="Portfolio en français">FR</a>
     </div>
-    <button id="viewToggle" type="button" title="Switch between book view and scroll view">Scroll view</button>
+    <div class="view-mode" role="group" aria-label="Portfolio view">
+      <button id="bookMode" type="button" aria-pressed="true">Book</button>
+      <button id="scrollMode" type="button" aria-pressed="false">Scroll</button>
+    </div>
     <button id="fs" type="button" title="Full screen (F)">Full screen</button>
     <a id="dl" class="btn" href="assets/portfolio.pdf" download>Download PDF</a>
   </nav>
@@ -45,6 +48,6 @@
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="assets/viewer.js?v=6"></script>
+<script src="assets/viewer.js?v=7"></script>
 </body>
 </html>

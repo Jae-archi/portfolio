@@ -18,13 +18,13 @@
   const lang = q.get('lang') === 'fr' ? 'fr' : 'en';
   const PDF_URL = (lang === 'fr' ? 'assets/portfolio_fr.pdf' : 'assets/portfolio.pdf') + '?v=20261004-3';
   const copy = lang === 'fr' ? {
-    subtitle: 'Portfolio 2026 · LIMINA, Du seuil à la ville', scroll: 'Vue défilante', book: 'Vue livre',
+    subtitle: 'Portfolio 2026 · LIMINA, Du seuil à la ville', scroll: 'Défilement', book: 'Livre',
     full: 'Plein écran', download: 'Télécharger PDF', zoom: 'Zoom', fit: 'Ajuster',
     loading: 'Chargement du portfolio…', viewerError: 'La visionneuse ne peut pas démarrer.',
     pdfError: 'Le portfolio ne peut pas être affiché.', direct: 'Ouvrir le PDF directement',
     footer: 'Utilisez ← → ou balayez pour tourner les pages. Les visites sont comptées anonymement (pages vues uniquement, sans cookies ni données personnelles).'
   } : {
-    subtitle: 'Portfolio 2026 · LIMINA, From Threshold to City', scroll: 'Scroll view', book: 'Book view',
+    subtitle: 'Portfolio 2026 · LIMINA, From Threshold to City', scroll: 'Scroll', book: 'Book',
     full: 'Full screen', download: 'Download PDF', zoom: 'Zoom', fit: 'Fit',
     loading: 'Loading portfolio…', viewerError: 'The viewer could not load.',
     pdfError: 'The portfolio could not be displayed.', direct: 'Open the PDF directly',
@@ -51,7 +51,9 @@
   $('langFr').setAttribute('aria-current', lang === 'fr' ? 'page' : 'false');
   refreshLanguageLinks();
   $('subtitle').textContent = copy.subtitle;
-  $('viewToggle').textContent = copy.scroll;
+  document.querySelector('.view-mode').setAttribute('aria-label', lang === 'fr' ? 'Mode de lecture' : 'Portfolio view');
+  $('bookMode').textContent = copy.book;
+  $('scrollMode').textContent = copy.scroll;
   $('fs').textContent = copy.full;
   $('fs').title = copy.full + ' (F)';
   $('dl').textContent = copy.download;
@@ -62,7 +64,8 @@
   $('footerCopy').textContent = copy.footer;
   $('status').textContent = copy.loading;
   $('viewport').title = lang === 'fr' ? 'Cliquer pour agrandir' : 'Click to zoom';
-  $('viewToggle').title = lang === 'fr' ? 'Changer de mode de lecture' : 'Switch between book view and scroll view';
+  $('bookMode').title = lang === 'fr' ? 'Afficher le portfolio en mode livre' : 'Show the portfolio as a book';
+  $('scrollMode').title = lang === 'fr' ? 'Afficher toutes les pages en défilement' : 'Show all pages in a scroll';
 
   /* ---------- analytics (GoatCounter, skipped if not configured or Do Not Track is on) ---------- */
   const dnt = navigator.doNotTrack === '1' || window.doNotTrack === '1';
@@ -270,7 +273,8 @@
     const book = m === 'book';
     document.body.classList.toggle('book-mode', book);
     bookEl.hidden = !book; ctrlEl.hidden = !book; pagesEl.hidden = book;
-    $('viewToggle').textContent = book ? copy.scroll : copy.book;
+    $('bookMode').setAttribute('aria-pressed', String(book));
+    $('scrollMode').setAttribute('aria-pressed', String(!book));
     $('fs').style.visibility = book ? '' : 'hidden';
     const url = new URL(location.href);
     if (book) url.searchParams.delete('view'); else url.searchParams.set('view', 'scroll');
@@ -285,7 +289,8 @@
       });
     }
   }
-  $('viewToggle').addEventListener('click', () => setMode(mode === 'book' ? 'scroll' : 'book'));
+  $('bookMode').addEventListener('click', () => { if (mode !== 'book') setMode('book'); });
+  $('scrollMode').addEventListener('click', () => { if (mode !== 'scroll') setMode('scroll'); });
 
   /* ---------- load ---------- */
   const task = pdfjsLib.getDocument(PDF_URL);
